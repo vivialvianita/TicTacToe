@@ -49,38 +49,36 @@ public class Board {
      *  Update cells[selectedRow][selectedCol]. Compute and return the
      *  new game state (PLAYING, DRAW, CROSS_WON, NOUGHT_WON).
      */
-    public State stepGame(Seed player, int selectedRow, int selectedCol) {
-        // Update game board
-        cells[selectedRow][selectedCol].content = player;
-
-        // Compute and return the new game state
-        if (cells[selectedRow][0].content == player  // 3-in-the-row
-                && cells[selectedRow][1].content == player
-                && cells[selectedRow][2].content == player
-                || cells[0][selectedCol].content == player // 3-in-the-column
-                && cells[1][selectedCol].content == player
-                && cells[2][selectedCol].content == player
-                || selectedRow == selectedCol     // 3-in-the-diagonal
-                && cells[0][0].content == player
-                && cells[1][1].content == player
-                && cells[2][2].content == player
-                || selectedRow + selectedCol == 2 // 3-in-the-opposite-diagonal
-                && cells[0][2].content == player
-                && cells[1][1].content == player
-                && cells[2][0].content == player) {
+    public State stepGame(Seed player, int row, int col) {
+        cells[row][col].content = player; // Set langkah pemain ke sel
+        // Periksa kemenangan
+        if (hasWon(player, row, col)) {
             return (player == Seed.CROSS) ? State.CROSS_WON : State.NOUGHT_WON;
-        } else {
-            // Nobody win. Check for DRAW (all cells occupied) or PLAYING.
-            for (int row = 0; row < ROWS; ++row) {
-                for (int col = 0; col < COLS; ++col) {
-                    if (cells[row][col].content == Seed.NO_SEED) {
-                        return State.PLAYING; // still have empty cells
-                    }
+        } else if (isDraw()) {
+            return State.DRAW; // Jika semua sel terisi dan tidak ada pemenang
+        }
+        return State.PLAYING; // Jika permainan masih berlanjut
+    }
+
+    private boolean hasWon(Seed player, int row, int col) {
+        // Periksa baris, kolom, dan dua diagonal
+        return (cells[row][0].content == player && cells[row][1].content == player && cells[row][2].content == player) ||
+                (cells[0][col].content == player && cells[1][col].content == player && cells[2][col].content == player) ||
+                (row == col && cells[0][0].content == player && cells[1][1].content == player && cells[2][2].content == player) ||
+                (row + col == 2 && cells[0][2].content == player && cells[1][1].content == player && cells[2][0].content == player);
+    }
+
+    private boolean isDraw() {
+        for (int row = 0; row < ROWS; ++row) {
+            for (int col = 0; col < COLS; ++col) {
+                if (cells[row][col].content == Seed.NO_SEED) {
+                    return false; // Ada sel kosong, belum seri
                 }
             }
-            return State.DRAW; // no empty cell, it's a draw
         }
+        return true; // Tidak ada sel kosong, berarti seri
     }
+
 
     /** Paint itself on the graphics canvas, given the Graphics context */
     public void paint(Graphics g) {

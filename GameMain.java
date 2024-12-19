@@ -7,6 +7,7 @@ import javax.swing.*;
  */
 public class GameMain extends JPanel {
     private static final long serialVersionUID = 1L; // to prevent serializable warning
+    private AIPlayer aiPlayer; // Tambahkan AIPlayer sebagai properti aiPlayer = new AIPlayer(Seed.NOUGHT); // Asumsikan AI akan bermain sebagai O (NOUGHT)
 
     // Define named constants for the drawing graphics
     public static final String TITLE = "Tic Tac Toe";
@@ -28,35 +29,36 @@ public class GameMain extends JPanel {
         // This JPanel fires MouseEvent
         super.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {  // mouse-clicked handler
+            public void mouseClicked(MouseEvent e) {
                 int mouseX = e.getX();
                 int mouseY = e.getY();
-                // Get the row and column clicked
                 int row = mouseY / Cell.SIZE;
                 int col = mouseX / Cell.SIZE;
 
                 if (currentState == State.PLAYING) {
                     if (row >= 0 && row < Board.ROWS && col >= 0 && col < Board.COLS
                             && board.cells[row][col].content == Seed.NO_SEED) {
-                        // Update cells[][] and return the new game state after the move
+
+                        // Langkah pemain manusia (CROSS)
                         currentState = board.stepGame(currentPlayer, row, col);
-
-                        // Play appropriate sound clip
-                        if (currentState == State.PLAYING) {
-                            SoundEffect.EAT_FOOD.play();
-                        } else {
-                            SoundEffect.DIE.play();
-                        }
-
-                        // Switch player
                         currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
+                        repaint();
+
+                        // Jika permainan masih berlangsung, biarkan AI bermain
+                        if (currentState == State.PLAYING && currentPlayer == Seed.NOUGHT) {
+                            int[] aiMove = aiPlayer.getBestMove(board);
+                            if (aiMove != null) {
+                                currentState = board.stepGame(Seed.NOUGHT, aiMove[0], aiMove[1]);
+                                currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
+                                repaint();
+                            }
+                        }
                     }
-                } else {        // game over
+                } else {
                     newGame();  // restart the game
                 }
-                // Refresh the drawing canvas
-                repaint();  // Callback paintComponent().
             }
+
         });
 
         // Setup the status bar (JLabel) to display status message
@@ -82,10 +84,12 @@ public class GameMain extends JPanel {
     /** Initialize the game (run once) */
     public void initGame() {
         board = new Board();  // allocate the game-board
+        aiPlayer = new AIPlayer(Seed.NOUGHT); // Asumsikan AI akan bermain sebagai O (NOUGHT)
     }
 
     /** Reset the game-board contents and the current-state, ready for new game */
     public void newGame() {
+        aiPlayer = new AIPlayer(Seed.NOUGHT); // Asumsikan AI akan bermain sebagai O (NOUGHT)
         for (int row = 0; row < Board.ROWS; ++row) {
             for (int col = 0; col < Board.COLS; ++col) {
                 board.cells[row][col].content = Seed.NO_SEED; // all cells empty
