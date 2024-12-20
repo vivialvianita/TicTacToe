@@ -17,7 +17,7 @@ public class WelcomePage extends JPanel {
     /** Constructor to set up the welcome screen UI */
     public WelcomePage(JFrame parentFrame) {
         // Load and scale the background image
-        backgroundImage = new ImageIcon("images/bikini-bottom_20170720_173311.jpg").getImage();
+        backgroundImage = new ImageIcon("images/jellyfishy.jpeg").getImage();
 
         // Play background music
         playBackgroundMusic("audio/Spongebob_Squarepants_-_Ripped_Pants_with_lyrics_[YouConvert.net].wav");
@@ -47,7 +47,11 @@ public class WelcomePage extends JPanel {
         connectFourButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(parentFrame, "Connect Four is coming soon!", "Coming Soon", JOptionPane.INFORMATION_MESSAGE);
+                stopBackgroundMusic(); // Stop musik sebelum beralih ke permainan
+                parentFrame.getContentPane().removeAll(); // Hapus tampilan welcome page
+                parentFrame.setContentPane(new ConnectFourGraphics()); // Ganti tampilan dengan game Connect Four
+                parentFrame.revalidate(); // Refresh frame
+                parentFrame.repaint();    // Repaint untuk memastikan board game tampil
             }
         });
 
@@ -131,7 +135,7 @@ public class WelcomePage extends JPanel {
      */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Welcome to the Game Hub");
+            JFrame frame = new JFrame("Welcome to Bikini Bottom");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setContentPane(new WelcomePage(frame));
             frame.setSize(800, 600); // Set preferred size of the window
