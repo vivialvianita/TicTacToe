@@ -1,6 +1,8 @@
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import java.net.URL;
+
 /**
  * Tic-Tac-Toe: Two-player Graphics version with Simple-OO in one class
  */
@@ -17,15 +19,12 @@ public class ConnectFourGraphics extends JFrame {
     public static final int BOARD_HEIGHT = CELL_SIZE * ROWS;
     public static final int GRID_WIDTH = 10;                  // Grid-line's width
     public static final int GRID_WIDTH_HALF = GRID_WIDTH / 2;
-    // Symbols (cross/nought) are displayed inside a cell, with padding from border
     public static final int CELL_PADDING = CELL_SIZE / 5;
     public static final int SYMBOL_SIZE = CELL_SIZE - CELL_PADDING * 2; // width/height
     public static final int SYMBOL_STROKE_WIDTH = 8; // pen's stroke width
     public static final Color COLOR_BG = Color.WHITE;  // background
     public static final Color COLOR_BG_STATUS = new Color(216, 216, 216);
     public static final Color COLOR_GRID   = Color.LIGHT_GRAY;  // grid lines
-    public static final Color COLOR_CROSS  = new Color(211, 45, 65);  // Red #D32D41
-    public static final Color COLOR_NOUGHT = new Color(76, 181, 245); // Blue #4CB5F5
     public static final Font FONT_STATUS = new Font("OCR A Extended", Font.PLAIN, 14);
 
     // This enum (inner class) contains the various states of the game
@@ -47,8 +46,24 @@ public class ConnectFourGraphics extends JFrame {
     private GamePanel gamePanel; // Drawing canvas (JPanel) for the game board
     private JLabel statusBar;  // Status Bar
 
+    // ImageIcons for 'X' and 'O'
+    private ImageIcon xIcon;
+    private ImageIcon oIcon;
+
     /** Constructor to setup the game and the GUI components */
     public ConnectFourGraphics() {
+        // Load images from resources folder
+        xIcon = new ImageIcon(getClass().getResource("images/spongebob.png"));
+        oIcon = new ImageIcon(getClass().getResource("images/patrick.png"));
+
+        // Check if the images were loaded correctly
+        if (xIcon.getImageLoadStatus() != MediaTracker.COMPLETE) {
+            System.err.println("Error loading x_image.png");
+        }
+        if (oIcon.getImageLoadStatus() != MediaTracker.COMPLETE) {
+            System.err.println("Error loading o_image.png");
+        }
+
         // Initialize the game objects
         initGame();
 
@@ -84,6 +99,7 @@ public class ConnectFourGraphics extends JFrame {
                 }
             }
         });
+
         // Setup the status bar (JLabel) to display status message
         statusBar = new JLabel("       ");
         statusBar.setFont(FONT_STATUS);
@@ -99,7 +115,7 @@ public class ConnectFourGraphics extends JFrame {
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         pack();  // pack all the components in this JFrame
-        setTitle("Tic Tac Toe");
+        setTitle("Connect Four");
         setVisible(true);  // show this JFrame
 
         newGame();
@@ -217,11 +233,9 @@ public class ConnectFourGraphics extends JFrame {
                     int x1 = col * CELL_SIZE + CELL_PADDING;
                     int y1 = row * CELL_SIZE + CELL_PADDING;
                     if (board[row][col] == Seed.CROSS) {  // Draw a red disc
-                        g2d.setColor(Color.RED);
-                        g2d.fillOval(x1, y1, SYMBOL_SIZE, SYMBOL_SIZE);
+                        g.drawImage(xIcon.getImage(), x1, y1, SYMBOL_SIZE, SYMBOL_SIZE, this);
                     } else if (board[row][col] == Seed.NOUGHT) {  // Draw a yellow disc
-                        g2d.setColor(Color.YELLOW);
-                        g2d.fillOval(x1, y1, SYMBOL_SIZE, SYMBOL_SIZE);
+                        g.drawImage(oIcon.getImage(), x1, y1, SYMBOL_SIZE, SYMBOL_SIZE, this);
                     }
                 }
             }
