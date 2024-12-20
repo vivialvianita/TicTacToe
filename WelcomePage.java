@@ -17,10 +17,10 @@ public class WelcomePage extends JPanel {
     /** Constructor to set up the welcome screen UI */
     public WelcomePage(JFrame parentFrame) {
         // Load and scale the background image
-        backgroundImage = new ImageIcon("C:/ASD/TicTacToe/images/bikini-bottom_20170720_173311.jpg").getImage();
+        backgroundImage = new ImageIcon("images/bikini-bottom_20170720_173311.jpg").getImage();
 
         // Play background music
-        playBackgroundMusic("C:/ASD/TicTacToe/audio/Spongebob_Squarepants_-_Ripped_Pants_with_lyrics_[YouConvert.net].wav");
+        playBackgroundMusic("audio/Spongebob_Squarepants_-_Ripped_Pants_with_lyrics_[YouConvert.net].wav");
 
         // Set layout for the panel
         setLayout(null);

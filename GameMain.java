@@ -19,6 +19,9 @@ public class GameMain extends JPanel {
     private JLabel statusBar;
     private JButton backButton;
     private JFrame parentFrame;
+    private boolean isAIForX = false; // Default: Pemain X dikendalikan oleh pengguna
+    private boolean isAIForO = true;  // Default: Pemain O dikendalikan oleh AI
+
 
     public GameMain(JFrame parentFrame) {
         this.parentFrame = parentFrame;
@@ -47,9 +50,16 @@ public class GameMain extends JPanel {
         statusBar.setHorizontalAlignment(JLabel.LEFT);
         statusBar.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 12));
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        buttonPanel.add(backButton);
+        JPanel buttonPanel = new JPanel(new BorderLayout());
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
+        topPanel.add(backButton); // Tombol kembali ke halaman utama
+        buttonPanel.add(topPanel, BorderLayout.WEST);
+
+// Tambahkan panel pengaturan AI di sebelah kanan
+        buttonPanel.add(createSettingsPanel(), BorderLayout.EAST);
+
+// Tambahkan buttonPanel ke bagian atas panel utama
         super.setLayout(new BorderLayout());
         super.add(buttonPanel, BorderLayout.PAGE_START);
         super.add(statusBar, BorderLayout.PAGE_END);
@@ -58,6 +68,24 @@ public class GameMain extends JPanel {
 
         initGame();
         newGame();
+    }
+
+    private JPanel createSettingsPanel() {
+        JPanel settingsPanel = new JPanel();
+        settingsPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+
+        JCheckBox aiForXCheckbox = new JCheckBox("AI for X");
+        aiForXCheckbox.setSelected(isAIForX);
+        aiForXCheckbox.addItemListener(e -> isAIForX = aiForXCheckbox.isSelected());
+
+        JCheckBox aiForOCheckbox = new JCheckBox("AI for O");
+        aiForOCheckbox.setSelected(isAIForO);
+        aiForOCheckbox.addItemListener(e -> isAIForO = aiForOCheckbox.isSelected());
+
+        settingsPanel.add(aiForXCheckbox);
+        settingsPanel.add(aiForOCheckbox);
+
+        return settingsPanel;
     }
 
     private void initGame() {
@@ -78,30 +106,55 @@ public class GameMain extends JPanel {
     }
 
     private void handleMouseClick(MouseEvent e) {
-        int mouseX = e.getX();
-        int mouseY = e.getY();
-        int row = mouseY / Cell.SIZE;
-        int col = mouseX / Cell.SIZE;
+        if (currentState != State.PLAYING) {
+            newGame(); // Jika permainan selesai, mulai ulang
+            repaint(); // Perbarui UI setelah reset
+            return;
+        }
 
-        if (currentState == State.PLAYING) {
+        // Hitung offset dari pusat
+        int boardWidth = Board.CANVAS_WIDTH;
+        int boardHeight = Board.CANVAS_HEIGHT;
+        int panelWidth = getWidth();
+        int panelHeight = getHeight();
+        int offsetX = (panelWidth - boardWidth) / 2;
+        int offsetY = (panelHeight - boardHeight) / 2;
+
+        // Hitung posisi klik relatif terhadap papan permainan
+        int mouseX = e.getX() - offsetX;
+        int mouseY = e.getY() - offsetY;
+
+        // Validasi apakah klik berada dalam batas papan permainan
+        if (mouseX >= 0 && mouseX < boardWidth && mouseY >= 0 && mouseY < boardHeight) {
+            int row = mouseY / Cell.SIZE;
+            int col = mouseX / Cell.SIZE;
+
             if (row >= 0 && row < Board.ROWS && col >= 0 && col < Board.COLS
                     && board.cells[row][col].content == Seed.NO_SEED) {
 
+                // Pemain manusia membuat langkah
                 currentState = board.stepGame(currentPlayer, row, col);
                 currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
                 repaint();
 
-                if (currentState == State.PLAYING && currentPlayer == Seed.NOUGHT) {
-                    int[] aiMove = aiPlayer.getBestMove(board);
-                    if (aiMove != null) {
-                        currentState = board.stepGame(Seed.NOUGHT, aiMove[0], aiMove[1]);
-                        currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
-                        repaint();
+                // Periksa apakah giliran AI
+                if (currentState == State.PLAYING) {
+                    if (currentPlayer == Seed.NOUGHT && isAIForO) {
+                        performAIMove();
+                    } else if (currentPlayer == Seed.CROSS && isAIForX) {
+                        performAIMove();
                     }
                 }
             }
-        } else {
-            newGame();
+        }
+    }
+
+    private void performAIMove() {
+        int[] aiMove = aiPlayer.getBestMove(board);
+        if (aiMove != null) {
+            currentState = board.stepGame(currentPlayer, aiMove[0], aiMove[1]);
+            repaint();
+            currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
         }
     }
 
@@ -110,7 +163,21 @@ public class GameMain extends JPanel {
         super.paintComponent(g);
         setBackground(COLOR_BG);
 
-        board.paint(g);
+        // Hitung offset untuk menempatkan board di tengah
+        int boardWidth = Board.CANVAS_WIDTH;
+        int boardHeight = Board.CANVAS_HEIGHT;
+        int panelWidth = getWidth();
+        int panelHeight = getHeight();
+
+        // Offset untuk memposisikan di tengah
+        int offsetX = (panelWidth - boardWidth) / 2;
+        int offsetY = (panelHeight - boardHeight) / 2;
+
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.translate(offsetX, offsetY); // Geser koordinat gambar
+        board.paint(g2d); // Gambar board dengan offset
+        g2d.translate(-offsetX, -offsetY); // Kembalikan ke posisi semula jika diperlukan
+
 
         if (currentState == State.PLAYING) {
             statusBar.setForeground(Color.BLACK);
