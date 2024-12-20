@@ -127,7 +127,50 @@ public class GameMain extends JPanel {
         currentPlayer = Seed.CROSS;
         currentState = State.PLAYING;
         repaint();
+
+        // Memulai timer untuk giliran pertama
+        if (isAIForX) {
+            performAIMove(); // Langkah otomatis jika AI untuk X
+        }
     }
+    private void startTimerForHumanTurn() {
+        // Timer untuk giliran manusia
+        humanTimerSeconds = 15;
+        humanTimer = new Timer(1000, e -> {
+            if (humanTimerSeconds > 0) {
+                humanTimerSeconds--;
+                statusBar.setText("Time left for " + (currentPlayer == Seed.CROSS ? "Spongebob" : "Patrick") + ": " + humanTimerSeconds + "s");
+            } else {
+                humanTimer.stop();
+                // Pindah ke giliran AI setelah waktu habis
+                if (currentPlayer == Seed.CROSS) {
+                    currentPlayer = Seed.NOUGHT;
+                    performAIMove();
+                } else {
+                    currentPlayer = Seed.CROSS;
+                }
+                repaint();
+                startTimerForHumanTurn(); // Mulai lagi timer untuk giliran berikutnya
+            }
+        });
+        humanTimer.start();
+    }
+
+    private void startAITimer() {
+        // Timer untuk giliran AI (3 detik setelah giliran manusia)
+        aiTimerSeconds = 3;
+        aiTimer = new Timer(1000, e -> {
+            if (aiTimerSeconds > 0) {
+                aiTimerSeconds--;
+                statusBar.setText("AI is thinking... " + aiTimerSeconds + "s");
+            } else {
+                aiTimer.stop();
+                performAIMove(); // AI melakukan langkah setelah 3 detik
+            }
+        });
+        aiTimer.start();
+    }
+
 
     private void handleMouseClick(MouseEvent e) {
         if (currentState != State.PLAYING) {
@@ -160,9 +203,29 @@ public class GameMain extends JPanel {
                 currentState = board.stepGame(currentPlayer, row, col);
                 currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
                 repaint();
+
             }
+        }// Setelah manusia bermain, mulai timer untuk giliran AI
+        if (currentState == State.PLAYING && currentPlayer == Seed.NOUGHT && isAIForO) {
+            startAITimer();
+        } else if (currentState == State.PLAYING && currentPlayer == Seed.CROSS && isAIForX) {
+            startAITimer();
+
         }
     }
+
+    private void performAIMove() {
+        // Proses langkah AI
+        int[] aiMove = aiPlayer.getBestMove(board);
+        if (aiMove != null) {
+            currentState = board.stepGame(currentPlayer, aiMove[0], aiMove[1]);
+            repaint();
+            currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
+            startTimerForHumanTurn(); // Mulai timer untuk giliran manusia berikutnya
+        }
+    }
+
+
 
     @Override
     public void paintComponent(Graphics g) {
