@@ -174,6 +174,7 @@ public class GameMain extends JPanel {
 
     private void handleMouseClick(MouseEvent e) {
         if (currentState != State.PLAYING) {
+            stopTimers(); // Hentikan timer saat permainan selesai
             newGame(); // Jika permainan selesai, mulai ulang
             repaint(); // Perbarui UI setelah reset
             return;
@@ -204,6 +205,17 @@ public class GameMain extends JPanel {
                 currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
                 repaint();
 
+                // Jika ada pemenang atau hasil seri, otomatis reset game
+                if (currentState != State.PLAYING) {
+                    stopTimers(); // Hentikan timer
+                    // Setel permainan baru setelah beberapa detik (opsional)
+                    Timer resetTimer = new Timer(0500, e1 -> {
+                        newGame();  // Reset game setelah 2 detik
+                        repaint();  // Update tampilan UI
+                    });
+                    resetTimer.setRepeats(false);  // Hanya sekali
+                    resetTimer.start();
+                }
             }
         }// Setelah manusia bermain, mulai timer untuk giliran AI
         if (currentState == State.PLAYING && currentPlayer == Seed.NOUGHT && isAIForO) {
@@ -211,6 +223,16 @@ public class GameMain extends JPanel {
         } else if (currentState == State.PLAYING && currentPlayer == Seed.CROSS && isAIForX) {
             startAITimer();
 
+        }
+
+    }
+
+    private void stopTimers() {
+        if (humanTimer != null) {
+            humanTimer.stop();
+        }
+        if (aiTimer != null) {
+            aiTimer.stop();
         }
     }
 
@@ -263,6 +285,8 @@ public class GameMain extends JPanel {
             statusBar.setText("'Patrick' Won! Click to play again.");
         }
     }
+
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
