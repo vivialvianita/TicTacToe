@@ -7,6 +7,7 @@ public class GameMain extends JPanel {
     private AIPlayer aiPlayer;
     private Timer aiTimer, humanTimer;  // Menambahkan deklarasi humanTimer
     private int aiTimerSeconds, humanTimerSeconds;
+    private String gameMode;
 
     public static final String TITLE = "Tic Tac Toe";
     public static final Color COLOR_BG = Color.WHITE;
@@ -24,9 +25,19 @@ public class GameMain extends JPanel {
     private boolean isAIForX = false; // Default: Pemain X dikendalikan oleh pengguna
     private boolean isAIForO = true;  // Default: Pemain O dikendalikan oleh AI
 
+    private Image backgroundImage; // Deklarasi backgroundImage
+
+    // Setter untuk gameMode
+    public void setGameMode(String gameMode) {
+        this.gameMode = gameMode;
+        System.out.println("Game Mode set to: " + gameMode);
+    }
 
     public GameMain(JFrame parentFrame) {
         this.parentFrame = parentFrame;
+
+        // Load background image
+        backgroundImage = new ImageIcon("images/jellyfishy.jpg").getImage(); // Ganti dengan path gambar background
 
         // Back Button
         backButton = new JButton("Back to Welcome Page");
@@ -58,10 +69,10 @@ public class GameMain extends JPanel {
         topPanel.add(backButton); // Tombol kembali ke halaman utama
         buttonPanel.add(topPanel, BorderLayout.WEST);
 
-// Tambahkan panel pengaturan AI di sebelah kanan
+        // Tambahkan panel pengaturan AI di sebelah kanan
         buttonPanel.add(createSettingsPanel(), BorderLayout.EAST);
 
-// Tambahkan buttonPanel ke bagian atas panel utama
+        // Tambahkan buttonPanel ke bagian atas panel utama
         super.setLayout(new BorderLayout());
         super.add(buttonPanel, BorderLayout.PAGE_START);
         super.add(statusBar, BorderLayout.PAGE_END);
@@ -138,91 +149,16 @@ public class GameMain extends JPanel {
                 currentState = board.stepGame(currentPlayer, row, col);
                 currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
                 repaint();
-
-                // Hentikan timer manusia setelah pemain memilih langkah
-                if (humanTimer != null) {
-                    humanTimer.stop();
-                }
-
-                // Periksa apakah giliran AI
-                if (currentState == State.PLAYING) {
-                    if (currentPlayer == Seed.NOUGHT && isAIForO) {
-                        // Tunggu 3 detik sebelum AI bergerak
-                        startAITimer();
-                    } else if (currentPlayer == Seed.CROSS && isAIForX) {
-                        // Tunggu 3 detik sebelum AI bergerak
-                        startAITimer();
-                    } else {
-                        // Mulai timer untuk pemain manusia jika giliran pemain manusia
-                        startHumanTimer();
-                    }
-                }
             }
-        }
-    }
-
-    private void startHumanTimer() {
-        humanTimerSeconds = 3;  // Setel waktu timer manusia menjadi 3 detik
-        humanTimer = new Timer(1000, e -> {
-            if (humanTimerSeconds > 0) {
-                humanTimerSeconds--;
-                updateStatusBarWithHumanTimer();
-            } else {
-                // Waktu habis, lanjutkan ke giliran berikutnya
-                currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
-                repaint();
-                if (currentState == State.PLAYING) {
-                    if (currentPlayer == Seed.NOUGHT && isAIForO) {
-                        startAITimer();
-                    } else if (currentPlayer == Seed.CROSS && isAIForX) {
-                        startAITimer();
-                    }
-                }
-            }
-        });
-        humanTimer.setRepeats(true); // Timer akan berulang setiap detik
-        humanTimer.start();
-    }
-
-    private void updateStatusBarWithHumanTimer() {
-        statusBar.setForeground(Color.BLACK);
-        statusBar.setText("Player's turn in " + humanTimerSeconds + " seconds");
-    }
-
-    private void startAITimer() {
-        aiTimerSeconds = 3;  // Setel waktu timer menjadi 3 detik
-        aiTimer = new Timer(1000, e -> {
-            if (aiTimerSeconds > 0) {
-                aiTimerSeconds--;
-                updateStatusBarWithTimer();
-            } else {
-                performAIMove();
-                aiTimer.stop(); // Hentikan timer setelah AI bergerak
-            }
-        });
-        aiTimer.setRepeats(true); // Timer akan berulang setiap detik
-        aiTimer.start();
-    }
-
-    private void updateStatusBarWithTimer() {
-        statusBar.setForeground(Color.BLACK);
-        statusBar.setText("AI's turn in " + aiTimerSeconds + " seconds");
-    }
-
-
-    private void performAIMove() {
-        int[] aiMove = aiPlayer.getBestMove(board);
-        if (aiMove != null) {
-            currentState = board.stepGame(currentPlayer, aiMove[0], aiMove[1]);
-            repaint();
-            currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
         }
     }
 
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        setBackground(COLOR_BG);
+
+        // Menggambar background
+        g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
 
         // Hitung offset untuk menempatkan board di tengah
         int boardWidth = Board.CANVAS_WIDTH;
@@ -238,7 +174,6 @@ public class GameMain extends JPanel {
         g2d.translate(offsetX, offsetY); // Geser koordinat gambar
         board.paint(g2d); // Gambar board dengan offset
         g2d.translate(-offsetX, -offsetY); // Kembalikan ke posisi semula jika diperlukan
-
 
         if (currentState == State.PLAYING) {
             statusBar.setForeground(Color.BLACK);

@@ -1,6 +1,5 @@
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import javax.swing.*;
 import javax.sound.sampled.*;
 import java.io.File;
@@ -9,6 +8,7 @@ public class WelcomePage extends JPanel {
     private static final long serialVersionUID = 1L;
     private Clip backgroundMusic;
     private Image backgroundImage;
+
 
     public WelcomePage(JFrame parentFrame) {
         backgroundImage = new ImageIcon("images/jellyfishy.jpeg").getImage();
@@ -19,19 +19,20 @@ public class WelcomePage extends JPanel {
         JButton ticTacToeButton = new JButton("Play Tic-Tac-Toe");
         JButton connectFourButton = new JButton("Play Connect Four");
 
-        styleButton(ticTacToeButton, "images/buttonttt.png");
-        styleButton(connectFourButton, "images/buttoncf.png");
+        styleButton(ticTacToeButton, "images/buttonttt.png", 200, 100);
+        styleButton(connectFourButton, "images/buttoncf.png", 200, 100);
 
+        // Tombol untuk permainan Tic-Tac-Toe
         ticTacToeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 stopBackgroundMusic();
-                parentFrame.getContentPane().removeAll();
-                parentFrame.setContentPane(new GameMain(parentFrame));
-                parentFrame.revalidate();
+                // Tampilkan dialog untuk memilih mode permainan
+                showGameModeDialog(parentFrame);
             }
         });
 
+        // Tombol untuk permainan Connect Four
         connectFourButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -59,8 +60,32 @@ public class WelcomePage extends JPanel {
         });
 
         Dimension size = parentFrame.getSize();
-        ticTacToeButton.setBounds(size.width / 2 - 100, size.height / 2 - 60, 200, 50);
-        connectFourButton.setBounds(size.width / 2 - 250, size.height / 2 + 10, 200, 50);
+        ticTacToeButton.setBounds(size.width / 2 - 150, size.height / 2 - 120, 300, 100);
+        connectFourButton.setBounds(size.width / 2 - 150, size.height / 2 + 20, 300, 100);
+    }
+
+    private void showGameModeDialog(JFrame parentFrame) {
+        String[] options = {"Human vs Human", "Human vs AI"};
+        int choice = JOptionPane.showOptionDialog(parentFrame, "Choose Game Mode",
+                "Game Mode", JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
+                null, options, options[0]);
+
+        // Berdasarkan pilihan, buat halaman permainan dengan mode yang dipilih
+        if (choice == 0) {
+            // Mode Human vs Human
+            GameMain gameMain = new GameMain(parentFrame);  // Menggunakan konstruktor dengan satu parameter JFrame
+            gameMain.setGameMode("Human vs Human"); // Setel mode permainan
+            parentFrame.getContentPane().removeAll();
+            parentFrame.setContentPane(gameMain);
+            parentFrame.revalidate();
+        } else if (choice == 1) {
+            // Mode Human vs AI
+            GameMain gameMain = new GameMain(parentFrame);  // Menggunakan konstruktor dengan satu parameter JFrame
+            gameMain.setGameMode("Human vs AI"); // Setel mode permainan
+            parentFrame.getContentPane().removeAll();
+            parentFrame.setContentPane(gameMain);
+            parentFrame.revalidate();
+        }
     }
 
     private ImageIcon getScaledIcon(String iconPath, int width, int height) {
@@ -70,13 +95,12 @@ public class WelcomePage extends JPanel {
         return new ImageIcon(scaledImg);
     }
 
-    private void styleButton(JButton button, String iconPath) {
-        // Set the scaled icon
-        button.setIcon(getScaledIcon(iconPath, 200, 100)); // Sesuaikan ukuran
+    private void styleButton(JButton button, String iconPath, int width, int height) {
+        button.setIcon(getScaledIcon(iconPath, width, height)); // Sesuaikan ukuran ikon
         button.setText(""); // Hapus teks
-        button.setFocusPainted(false);
         button.setContentAreaFilled(false);
         button.setBorderPainted(false);
+        button.setFocusPainted(false);
         button.setOpaque(false);
     }
 
