@@ -5,6 +5,8 @@ import javax.swing.*;
 public class GameMain extends JPanel {
     private static final long serialVersionUID = 1L;
     private AIPlayer aiPlayer;
+    private Timer aiTimer, humanTimer;  // Menambahkan deklarasi humanTimer
+    private int aiTimerSeconds, humanTimerSeconds;
 
     public static final String TITLE = "Tic Tac Toe";
     public static final Color COLOR_BG = Color.WHITE;
@@ -137,17 +139,76 @@ public class GameMain extends JPanel {
                 currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
                 repaint();
 
+                // Hentikan timer manusia setelah pemain memilih langkah
+                if (humanTimer != null) {
+                    humanTimer.stop();
+                }
+
                 // Periksa apakah giliran AI
                 if (currentState == State.PLAYING) {
                     if (currentPlayer == Seed.NOUGHT && isAIForO) {
-                        performAIMove();
+                        // Tunggu 3 detik sebelum AI bergerak
+                        startAITimer();
                     } else if (currentPlayer == Seed.CROSS && isAIForX) {
-                        performAIMove();
+                        // Tunggu 3 detik sebelum AI bergerak
+                        startAITimer();
+                    } else {
+                        // Mulai timer untuk pemain manusia jika giliran pemain manusia
+                        startHumanTimer();
                     }
                 }
             }
         }
     }
+
+    private void startHumanTimer() {
+        humanTimerSeconds = 3;  // Setel waktu timer manusia menjadi 3 detik
+        humanTimer = new Timer(1000, e -> {
+            if (humanTimerSeconds > 0) {
+                humanTimerSeconds--;
+                updateStatusBarWithHumanTimer();
+            } else {
+                // Waktu habis, lanjutkan ke giliran berikutnya
+                currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
+                repaint();
+                if (currentState == State.PLAYING) {
+                    if (currentPlayer == Seed.NOUGHT && isAIForO) {
+                        startAITimer();
+                    } else if (currentPlayer == Seed.CROSS && isAIForX) {
+                        startAITimer();
+                    }
+                }
+            }
+        });
+        humanTimer.setRepeats(true); // Timer akan berulang setiap detik
+        humanTimer.start();
+    }
+
+    private void updateStatusBarWithHumanTimer() {
+        statusBar.setForeground(Color.BLACK);
+        statusBar.setText("Player's turn in " + humanTimerSeconds + " seconds");
+    }
+
+    private void startAITimer() {
+        aiTimerSeconds = 3;  // Setel waktu timer menjadi 3 detik
+        aiTimer = new Timer(1000, e -> {
+            if (aiTimerSeconds > 0) {
+                aiTimerSeconds--;
+                updateStatusBarWithTimer();
+            } else {
+                performAIMove();
+                aiTimer.stop(); // Hentikan timer setelah AI bergerak
+            }
+        });
+        aiTimer.setRepeats(true); // Timer akan berulang setiap detik
+        aiTimer.start();
+    }
+
+    private void updateStatusBarWithTimer() {
+        statusBar.setForeground(Color.BLACK);
+        statusBar.setText("AI's turn in " + aiTimerSeconds + " seconds");
+    }
+
 
     private void performAIMove() {
         int[] aiMove = aiPlayer.getBestMove(board);
@@ -181,16 +242,16 @@ public class GameMain extends JPanel {
 
         if (currentState == State.PLAYING) {
             statusBar.setForeground(Color.BLACK);
-            statusBar.setText((currentPlayer == Seed.CROSS) ? "X's Turn" : "O's Turn");
+            statusBar.setText((currentPlayer == Seed.CROSS) ? "Spongebob's Turn" : "Patrick's Turn");
         } else if (currentState == State.DRAW) {
             statusBar.setForeground(Color.RED);
             statusBar.setText("It's a Draw! Click to play again.");
         } else if (currentState == State.CROSS_WON) {
             statusBar.setForeground(Color.RED);
-            statusBar.setText("'X' Won! Click to play again.");
+            statusBar.setText("'Spongebob' Won! Click to play again.");
         } else if (currentState == State.NOUGHT_WON) {
             statusBar.setForeground(Color.RED);
-            statusBar.setText("'O' Won! Click to play again.");
+            statusBar.setText("'Patrick' Won! Click to play again.");
         }
     }
 
